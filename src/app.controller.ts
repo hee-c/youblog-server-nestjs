@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { YoutubeService } from './youtube/youtube.service';
 
@@ -14,10 +14,22 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get('/test')
-  async test(): Promise<void> {
-    await this.youtubeService.getYoutubeVoiceAndPushToS3(
-      'https://www.youtube.com/watch?v=YhJq2V8Ud-E',
-    );
+  @Post('/post')
+  createPost(@Body() body: { youtubeUrl: string }): Promise<any> {
+    return this.youtubeService.getYoutubeVoiceAndPushToS3(body.youtubeUrl);
   }
+
+  // @Post('/speech-callback')
+  // async genChat(@Body() body: any): Promise<void> {
+  //   const content = await this.clovaStudioService.requestChatCompletion(
+  //     body.text,
+  //   );
+  // }
+  //
+  // @Get('/post/:key')
+  // async getPostByKey(@Param('key') key: string): Promise<string> {
+  //   const post = await this.postRepo.findOneBy({ key });
+  //
+  //   return post.content;
+  // }
 }

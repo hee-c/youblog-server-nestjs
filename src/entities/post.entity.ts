@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Index(['key'], { unique: true })
+@Index(['key'], { unique: false })
 @Entity()
 export class PostEntity extends BaseEntity {
   @PrimaryGeneratedColumn()

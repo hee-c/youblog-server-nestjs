@@ -19,8 +19,13 @@ export class YoutubeService {
   ) {}
 
   async getYoutubeVoiceAndPushToS3(url: string): Promise<any> {
-    const regex = /^.*[=]([a-zA-Z0-9_-]+)$/;
+    const regex =
+      /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/;
     const key = url.match(regex)[1];
+
+    const post = await this.postRepo.findOneBy({ key });
+    if (post) return post;
+
     await exec(url, {
       // dumpSingleJson: true,
       noCheckCertificates: true,

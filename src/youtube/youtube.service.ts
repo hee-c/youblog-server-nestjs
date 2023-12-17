@@ -19,23 +19,6 @@ export class YoutubeService {
   ) {}
 
   async getYoutubeVoiceAndPushToS3(url: string): Promise<any> {
-    const regex =
-      /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/;
-    const key = url.match(regex)[1];
-
-    const post = await this.postRepo.findOneBy({ key });
-    if (post) return post;
-
-    await exec(url, {
-      noCheckCertificates: true,
-      noWarnings: true,
-      preferFreeFormats: true,
-      output: `${key}`,
-      addHeader: ['referer:youtube.com', 'user-agent:googlebot'],
-      extractAudio: true,
-      audioFormat: 'mp3',
-    });
-
     const youtubeDlMetaData = await exec(url, {
       dumpSingleJson: true,
       noCheckCertificates: true,
@@ -45,8 +28,21 @@ export class YoutubeService {
     });
     const youtube = JSON.parse(youtubeDlMetaData.stdout);
 
-    const filePath = `${process.cwd()}/${key}.mp3`;
-    const storageKey = `speech-request/${key}.mp3`;
+    const post = await this.postRepo.findOneBy({ key: youtube.id });
+    if (post) return post;
+
+    await exec(url, {
+      noCheckCertificates: true,
+      noWarnings: true,
+      preferFreeFormats: true,
+      output: `${youtube.id}`,
+      addHeader: ['referer:youtube.com', 'user-agent:googlebot'],
+      extractAudio: true,
+      audioFormat: 'mp3',
+    });
+
+    const filePath = `${process.cwd()}/${youtube.id}.mp3`;
+    const storageKey = `speech-request/${youtube.id}.mp3`;
 
     await this.s3Service.putObject(filePath, storageKey);
     const result =
@@ -59,7 +55,7 @@ export class YoutubeService {
       blog: content.blog,
       insta: content.insta,
       brunch: content.brunch,
-      key,
+      key: youtube.id,
       title: youtube.title,
     });
 

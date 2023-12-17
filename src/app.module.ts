@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -10,7 +10,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DefaultNamingStrategy } from 'typeorm';
 import { camelCase } from 'typeorm/util/StringUtils';
 import { PostEntity } from './entities/post.entity';
-import { LoggerMiddleware } from './middlewares/logger.middleware';
 
 export class TypeOrmNamingStrategy extends DefaultNamingStrategy {
   tableName(targetName: string, userSpecifiedName: string | undefined): string {
@@ -45,8 +44,4 @@ export class TypeOrmNamingStrategy extends DefaultNamingStrategy {
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer): any {
-    consumer.apply(LoggerMiddleware).forRoutes('/post');
-  }
-}
+export class AppModule {}

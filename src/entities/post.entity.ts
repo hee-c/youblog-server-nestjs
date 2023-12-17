@@ -14,8 +14,30 @@ export class PostEntity extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ comment: '생성된 블로그 컨텐츠', type: 'varchar', length: 3000 })
-  content: string;
+  @Column({
+    comment: 'Youtube 영상 제목',
+    type: 'varchar',
+    length: 300,
+    default: 'DEFAULT_TITLE',
+  })
+  title: string;
+
+  @Column({ comment: '기본 블로그 글', type: 'varchar', length: 3000 })
+  blog: string;
+
+  @Column({
+    comment: '인스타그램 스타일의 블로그 글',
+    type: 'varchar',
+    length: 3000,
+  })
+  insta: string;
+
+  @Column({
+    comment: '브런치 스타일의 블로그 글',
+    type: 'varchar',
+    length: 3000,
+  })
+  brunch: string;
 
   @Column({ comment: 'Youtube key 값', type: 'varchar', length: 100 })
   key: string;

@@ -27,7 +27,6 @@ export class YoutubeService {
     if (post) return post;
 
     await exec(url, {
-      // dumpSingleJson: true,
       noCheckCertificates: true,
       noWarnings: true,
       preferFreeFormats: true,
@@ -36,6 +35,15 @@ export class YoutubeService {
       extractAudio: true,
       audioFormat: 'mp3',
     });
+
+    const youtubeDlMetaData = await exec(url, {
+      dumpSingleJson: true,
+      noCheckCertificates: true,
+      noWarnings: true,
+      preferFreeFormats: true,
+      addHeader: ['referer:youtube.com', 'user-agent:googlebot'],
+    });
+    const youtube = JSON.parse(youtubeDlMetaData.stdout);
 
     const filePath = `${process.cwd()}/${key}.mp3`;
     const storageKey = `speech-request/${key}.mp3`;
@@ -48,8 +56,11 @@ export class YoutubeService {
     );
 
     const createdPost = await this.postRepo.save({
-      content,
+      blog: content.blog,
+      insta: content.insta,
+      brunch: content.brunch,
       key,
+      title: youtube.title,
     });
 
     await fs.unlink(filePath, () => {});

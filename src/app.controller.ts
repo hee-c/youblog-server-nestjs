@@ -15,8 +15,22 @@ export class AppController {
   }
 
   @Post('/post')
-  createPost(@Body() body: { youtubeUrl: string }): Promise<any> {
-    return this.youtubeService.getYoutubeVoiceAndPushToS3(body.youtubeUrl);
+  async createPost(@Body() body: { youtubeUrl: string }): Promise<any> {
+    const post = await this.youtubeService.getYoutubeVoiceAndPushToS3(
+      body.youtubeUrl,
+    );
+
+    return {
+      title: post.title,
+      content: {
+        blog: post.blog,
+        insta: post.insta,
+        brunch: post.brunch,
+      },
+      key: post.key,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+    };
   }
 
   // @Post('/speech-callback')

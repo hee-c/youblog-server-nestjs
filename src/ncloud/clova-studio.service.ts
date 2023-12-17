@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
+import { splitStringByLength } from '../common/util';
 
 @Injectable()
 export class ClovaStudioService {
@@ -8,7 +9,7 @@ export class ClovaStudioService {
   constructor(private configService: ConfigService) {
     this.axiosClient = axios.create({
       baseURL: this.configService.get<string>('N_CLOUD_CLOVA_STUDIO_URL'),
-      timeout: 30000,
+      timeout: 60000,
       headers: {
         'Content-Type': 'application/json',
         'X-NCP-CLOVASTUDIO-API-KEY': this.configService.get<string>(
@@ -26,6 +27,7 @@ export class ClovaStudioService {
 
   private async requestClovaStudioChatCompletion(
     text: string,
+    maxTokens = 1100,
   ): Promise<string> {
     const result = await this.axiosClient.post(
       '/testapp/v1/chat-completions/HCX-002',
@@ -42,7 +44,7 @@ export class ClovaStudioService {
         ],
         topP: 0.8,
         topK: 0,
-        maxTokens: 1100,
+        maxTokens,
         temperature: 0.5,
         repeatPenalty: 5.0,
         stopBefore: [],
@@ -56,10 +58,24 @@ export class ClovaStudioService {
   async requestChatCompletion(
     text: string,
   ): Promise<{ blog: string; insta: string; brunch: string }> {
-    const smallString = text.substring(0, 2800);
+    const partialTexts = splitStringByLength(text, 2800);
+    const chunkSize =
+      Math.floor(2800 / partialTexts.length) > 1000
+        ? 1000
+        : Math.floor(2800 / partialTexts.length);
+
+    const summarizedText: string[] = [];
+    for (const partialText of partialTexts) {
+      const result = await this.requestClovaStudioChatCompletion(
+        `아래 텍스트를 ${chunkSize} 글자 내로 요약해줘. "${partialText}"`,
+      );
+      summarizedText.push(result);
+    }
 
     const result1 = await this.requestClovaStudioChatCompletion(
-      `아래 텍스트를 1000자 내로 요약하고, 문맥이 잘 이해될 수 있게 오타, 띄어쓰기, 줄 바꿈을 고쳐줘. "${smallString}"`,
+      `아래 텍스트를 1000자 내로 요약하고, 문맥이 잘 이해될 수 있게 오타, 띄어쓰기, 줄 바꿈을 고쳐줘. "${summarizedText.join(
+        ' ',
+      )}"`,
     );
     const result2 = await this.requestClovaStudioChatCompletion(
       `아래 텍스트를 [정보성 글을 전문적으로 작성하는 블로거]의 입장에서 블로그에 바로 포스팅 할 수 있는 글로 바꾸어줘. "${result1}"`,

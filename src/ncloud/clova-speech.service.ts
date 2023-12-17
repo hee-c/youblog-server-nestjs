@@ -8,7 +8,7 @@ export class ClovaSpeechService {
   constructor(private configService: ConfigService) {
     this.axiosClient = axios.create({
       baseURL: this.configService.get<string>('N_CLOUD_SPEECH_URL'),
-      timeout: 30000,
+      timeout: 60000,
       headers: {
         'Content-Type': 'application/json',
         'X-CLOVASPEECH-API-KEY': this.configService.get<string>(
